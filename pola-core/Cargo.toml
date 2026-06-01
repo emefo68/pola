@@ -1,0 +1,8 @@
+[package]
+name = "pola-core"
+version = "0.1.0"
+edition = "2024"
+description = "Core Intelligence, TF-IDF classification and file operations for Pola"
+license = "MIT"
+
+[dependencies]

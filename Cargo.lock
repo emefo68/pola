@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
-name = "pola"
+name = "pola-cli"
+version = "0.1.0"
+dependencies = [
+ "pola-core",
+]
+
+[[package]]
+name = "pola-core"
 version = "0.1.0"

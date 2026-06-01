@@ -1,0 +1,8 @@
+[package]
+name = "pola-cli"
+version = "0.1.0"
+edition = "2024"
+description = "Command-Line Interface for Pola"
+
+[dependencies]
+pola-core = { path = "../pola-core"}
