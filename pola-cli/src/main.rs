@@ -1,5 +1,3 @@
-use pola_core;
-
 fn main() {
     let word_count = pola_core::parser::get_word_count("Hello, pola!");
     if let Some((key, value)) = word_count.get_key_value("hello") {
