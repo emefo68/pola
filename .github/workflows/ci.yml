@@ -1,0 +1,40 @@
+name: Rust CI
+
+# 1. When should this pipeline run?
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+# 2. What should the server do?
+jobs:
+  test_and_lint:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step A: Download your code onto the GitHub server
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step B: Install the latest stable Rust compiler
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      # Step C: Check if your code is formatted correctly
+      - name: Enforce Formatting
+        run: cargo fmt --all -- --check
+
+      # Step D: Run Clippy (Rust's strict AI-like linter)
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      # Step E: Run all your unit tests!
+      - name: Run Tests
+        run: cargo test --verbose
