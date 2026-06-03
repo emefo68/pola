@@ -6,3 +6,11 @@ description = "Core Intelligence, TF-IDF classification and file operations for 
 license = "MIT"
 
 [dependencies]
+rusqlite = { version = "0.40.0", features = ["bundled"]}
+
+[dev-dependencies]
+criterion = "0.8.2"
+
+[[bench]]
+name="core_bench"
+harness=false
