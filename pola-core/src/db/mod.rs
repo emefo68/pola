@@ -5,6 +5,7 @@ use rusqlite::{Connection, Error};
 const INITIAL_SCHEMA: &str = include_str!("schema.sql");
 
 pub struct Database {
+    #[allow(dead_code)]
     conn: Connection,
 }
 
