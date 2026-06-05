@@ -1,4 +1,5 @@
 pub mod db;
-pub mod parser;
+pub mod extractor;
+pub mod normalizer;
 
 pub use db::Database;

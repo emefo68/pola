@@ -2,7 +2,7 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box; // <-- New standard library import
 
 // Import the public function from your library
-use pola_core::parser::get_word_count;
+use pola_core::normalizer::get_word_count;
 
 fn bench_get_word_count(c: &mut Criterion) {
     // We will use the same string from your test as the benchmarking payload
