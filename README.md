@@ -17,9 +17,9 @@ Pola is split into two crates:
 | Module | Status |
 |---|---|
 | Text parser (`parser.rs`) | Done |
-| File reader | Planned |
+| File reader | Done (Support for more file types planned) |
 | TF-IDF Classifier | Planned |
-| SQLite store | Planned |
+| SQLite store | In Progress |
 | CLI & file watcher | Planned |
 
 ## License
