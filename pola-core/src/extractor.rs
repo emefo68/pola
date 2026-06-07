@@ -22,6 +22,7 @@ pub fn tokenize_file(path: &Path) -> Result<HashMap<String, usize>, io::Error> {
         Some("txt") => parse_txt_file(path),
         Some("md") => parse_txt_file(path),
         Some("csv") => parse_csv_file(path),
+        Some("pdf") => parse_pdf_file(path),
         Some(_) => Err(io::Error::new(Unsupported, "Unsupported file extension")),
         None => Err(io::Error::new(Unsupported, "Unreadable extension Bytes")),
     }?;
@@ -51,6 +52,17 @@ pub(crate) fn parse_csv_file(path: &Path) -> Result<String, io::Error> {
         file_string.push('\n');
     }
     Ok(file_string)
+}
+
+pub(crate) fn parse_pdf_file(path: &Path) -> Result<String, io::Error> {
+    let bytes = std::fs::read(path)?;
+    let out = pdf_extract::extract_text_from_mem(&bytes).map_err(|e| {
+        io::Error::new(
+            InvalidData,
+            format!("PDF parse error for file {}: {e}", path.display()),
+        )
+    })?;
+    Ok(out)
 }
 
 #[cfg(test)]
@@ -94,6 +106,28 @@ mod tests {
     fn test_tokenize_faulty_csv() {
         let file = std::env::temp_dir().join("test_faulty.csv");
         std::fs::write(&file, b"hello,pola,this,is,a,test\nfor,a,function\xFF\xFE").unwrap();
+        let result = tokenize_file(file.as_path());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().kind() == InvalidData)
+    }
+
+    #[test]
+    fn test_tokenize_pdf() {
+        let file = Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/test.pdf"
+        ));
+        let result = match tokenize_file(file) {
+            Ok(file_string) => file_string,
+            Err(err) => panic!("Error checking file extension: {err:?}"),
+        };
+        assert_eq!(result.get("pola"), Some(&3))
+    }
+
+    #[test]
+    fn test_tokenize_faulty_pdf() {
+        let file = std::env::temp_dir().join("test_faulty.pdf");
+        std::fs::write(&file, b"Hello, Pola! This is a test for a faulty PDF file.").unwrap();
         let result = tokenize_file(file.as_path());
         assert!(result.is_err());
         assert!(result.unwrap_err().kind() == InvalidData)
