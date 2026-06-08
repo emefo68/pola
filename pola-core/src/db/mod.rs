@@ -1,11 +1,10 @@
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
-use rusqlite::{Connection, Error};
+use rusqlite::{Connection, Error, params};
 
 const INITIAL_SCHEMA: &str = include_str!("schema.sql");
 
 pub struct Database {
-    #[allow(dead_code)]
     conn: Connection,
 }
 
@@ -23,6 +22,20 @@ impl Database {
 
         Ok(Database { conn })
     }
+
+    pub fn write_word_count(&mut self, word_counts: &HashMap<String, usize>) -> Result<(), Error> {
+        let tx = self.conn.transaction()?;
+        {
+            let mut update_term_properties_stmt = tx.prepare(
+            "INSERT INTO vocabulary (term, document_frequency, total_count) VALUES (?1, 1, ?2) ON CONFLICT(term) DO UPDATE SET total_count = (excluded.total_count + total_count), document_frequency = (document_frequency + 1)",
+            )?;
+            for (key, value) in word_counts {
+                update_term_properties_stmt.execute(params![key, (*value) as u32])?;
+            }
+        }
+        tx.commit()?;
+        Ok(())
+    }
 }
 
 fn apply_schema(conn: &mut Connection) -> Result<(), Error> {
@@ -36,13 +49,44 @@ fn apply_schema(conn: &mut Connection) -> Result<(), Error> {
         tx.execute_batch("PRAGMA user_version = 1;")?;
         tx.commit()?;
     }
-
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_word_count() {
+        let mut db = Database::new(Path::new(":memory:")).expect("Could not create database.");
+        let mut test_data: HashMap<String, usize> = HashMap::new();
+        test_data.insert(String::from("hello"), 3);
+        let result = db.write_word_count(&test_data);
+        assert!(result.is_ok());
+        let (count, doc_frequency): (u32, u32) = db
+            .conn
+            .query_row(
+                "SELECT total_count, document_frequency from vocabulary WHERE term = 'hello'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(count, 3);
+        assert_eq!(doc_frequency, 1);
+        test_data.insert(String::from("hello"), 5);
+        let result = db.write_word_count(&test_data);
+        assert!(result.is_ok());
+        let (count, doc_frequency): (u32, u32) = db
+            .conn
+            .query_row(
+                "SELECT total_count, document_frequency from vocabulary WHERE term = 'hello'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(count, 8);
+        assert_eq!(doc_frequency, 2);
+    }
 
     #[test]
     fn test_database_initialization() {

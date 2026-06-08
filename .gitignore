@@ -51,3 +51,6 @@ target
 #
 CLAUDE.md
 /docs
+*.db
+*.db-shm
+*.db-wal
